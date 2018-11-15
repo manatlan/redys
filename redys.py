@@ -105,6 +105,38 @@ class OpClient: # exposed redys's methods
                     return events[event][self.id].pop(0)
         return None
 
+    def rpush(self,key,obj):
+        l=db.get(key,[])
+        if type(l)!=list: l=[l]
+        l.append(obj)
+        db[key]=l
+        return len(l)
+
+    def lpush(self,key,obj):
+        l=db.get(key,[])
+        if type(l)!=list: l=[l]
+        l=[obj]+l
+        db[key]=l
+        return len(l)
+
+    def rpop(self,key):
+        l=db.get(key,None)
+        if type(l)==list and len(l)>0:
+            r=l.pop()
+            db[key]=l
+        else:
+            r=None
+        return r
+
+    def lpop(self,key):
+        l=db.get(key,None)
+        if type(l)==list and len(l)>0:
+            r=l.pop(0)
+            db[key]=l
+        else:
+            r=None
+        return r
+
 async def redys_handler(reader, writer):
     try:
         client=None

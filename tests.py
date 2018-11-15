@@ -132,6 +132,30 @@ class Test(unittest.TestCase):
         await r.decr("val")
         assert await r.get("val")==-1
 
+    @async_test
+    async def test_pushpop(self):
+        r = Client()
+        assert await r.delete("ll")
+        assert await r.rpush("ll",42)==1
+        assert await r.rpush("ll",43)==2
+        assert await r.lpush("ll",41)==3
+        assert await r.get("ll")==[41,42,43]
+        assert await r.rpop("ll")==43
+        assert await r.get("ll")==[41,42]
+        assert await r.lpop("ll")==41
+        assert await r.get("ll")==[42]
+        assert await r.lpop("ll")==42
+        assert await r.get("ll")==[]
+        assert await r.lpop("ll")==None
+        assert await r.get("ll")==[]
+
+    @async_test
+    async def test_pushpop(self):
+        r = Client()
+        await r.set("kiki","hello")
+        assert await r.rpush("kiki",42)==2 # kiki becomes a list
+        assert await r.get("kiki")==["hello",42]
+
 
 if __name__=="__main__":
     unittest.main()
