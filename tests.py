@@ -1,87 +1,107 @@
+import asyncio,unittest
 from redys import Client
 
-import unittest,asyncio
 
-class ContextTestCase(unittest.TestCase):
+def async_test(coro):
+    def wrapper(*args, **kwargs):
+        loop = asyncio.new_event_loop()
+        return loop.run_until_complete(coro(*args, **kwargs))
+    return wrapper
 
-    def test_0(self):
-        with Client() as r:
-            r.get("xxx") == None
+class Test(unittest.TestCase):
 
-    def test_1(self):
+    @async_test
+    async def test_xxx(self):
+        c=Client()
+        r=await c.set("jo",42)
+        c2=Client()
+        r=await c2.get("jo")
+
+
+    @async_test
+    async def test_1(self):
+        c = Client()
+        assert await c.get("xxx") == None
+
+    @async_test
+    async def test_2(self):
         r = Client()
-        assert r.get("xxx") == None
+        assert await r.set("kkk","v") == True
 
-    def test_2(self):
-        r = Client()
-        assert r.set("kkk","v") == True
+        assert await r.get("kkk") == "v"
+        assert await r.get("kkk","jjjj") == ["v",None]
 
-        assert r.get("kkk") == "v"
-        assert r.get("kkk","jjjj") == ["v",None]
+        assert "kkk" in await r.keys()
 
-        assert "kkk" in r.keys()
+        assert await r.delete("kkk","jjjj") == True
 
-        assert r.delete("kkk","jjjj") == True
+        assert "kkk" not in await r.keys()
 
-        assert "kkk" not in r.keys()
-
-
-    def test_3(self):
+    @async_test
+    async def test_3(self):
         r = Client()
 
-        assert r.register("toto") ==True
-        assert r.publish("toto",42) == True
-        assert r.publish("toto","hello") == True
+        assert await r.register("toto") ==True
+        assert await r.publish("toto",42) == True
+        assert await r.publish("toto","hello") == True
 
-        assert r.subscribe("toto") ==42
-        assert r.subscribe("toto") =="hello"
-        assert r.subscribe("toto") ==None
-        assert r.publish("toto",99) == True
-        #~ assert r.unregister("toto")
+        assert await r.subscribe("toto") ==42
+        assert await r.subscribe("toto") =="hello"
+        assert await r.subscribe("toto") ==None
+        assert await r.publish("toto",99) == True
+        assert await r.unregister("toto")
 
-
-    def test_3(self):
+    @async_test
+    async def test_4(self):
         r1 = Client()
         r2 = Client()
 
-        assert r1.register("toto") ==True
-        assert r2.publish("toto",42) == True
-        assert r2.publish("toto","hello") == True
+        assert await r1.register("toto") ==True
+        assert await r2.publish("toto",42) == True
+        assert await r2.publish("toto","hello") == True
 
-        assert r1.subscribe("toto") ==42
-        assert r1.subscribe("toto") =="hello"
-        assert r1.subscribe("toto") ==None
-        assert r2.publish("toto",99) == True
-        assert r1.subscribe("toto") ==99
-        assert r1.subscribe("toto") ==None
-        #~ assert r1.unregister("toto")
+        assert await r1.subscribe("toto") ==42
+        assert await r1.subscribe("toto") =="hello"
+        assert await r1.subscribe("toto") ==None
+        assert await r2.publish("toto",99) == True
+        assert await r1.subscribe("toto") ==99
+        assert await r1.subscribe("toto") ==None
+        assert await r1.unregister("toto")
 
-    def test_4(self):
+    @async_test
+    async def test_5(self):
         r1 = Client()
-        assert r1.publish("toto","hello") == False # nobody is subscribing that
+        assert await r1.publish("newtoto","hello") == False # nobody is subscribing that
         r2=Client()
-        assert r2.register("toto") ==True
-        assert r1.publish("toto","hello") == True
-        assert r2.unregister("toto") ==True
+        assert await r2.register("newtoto") ==True
+        assert await r1.publish("newtoto","hello") == True
+        assert await r2.unregister("newtoto") ==True
 
-        assert r2.subscribe("toto") == None
-        assert r1.publish("toto","hello") == False # nobody is subscribing that
+        assert await r2.subscribe("newtoto") == None
+        assert await r1.publish("newtoto","hello") == False # nobody is subscribing that
 
-    def test_5(self):
+    @async_test
+    async def test_6(self):
         r1 = Client()
-        assert r1.subscribe("xxxxx") == None    # subscribe without register ....
+        assert await r1.subscribe("xxxxx") == None    # subscribe without register ....
 
-    def test_6(self):
+    @async_test
+    async def test_7(self):
         r1 = Client()
-        assert r1.unregister("xxxxx") == False  # unregister without register it before ....
+        assert await r1.unregister("xxxxx") == False  # unregister without register it before ....
 
-    def test_x(self):
+
+    @async_test
+    async def test_x(self):
         r1 = Client()
         r2 = Client()
         r3 = Client()
-        assert r1.set("yo",666) == True
-        assert r2.get("yo") == 666
-        assert "yo" in r3.keys()
+        assert await r1.set("yo",666) == True
+        assert await r2.get("yo") == 666
+        assert "yo" in await r3.keys()
+
 
 if __name__=="__main__":
     unittest.main()
+
+
