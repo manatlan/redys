@@ -37,6 +37,12 @@ class Client:
         if self.writer:
             self.writer.close()
 
+
+    async def incr(self,key):
+        return await self._com( dict(command="incr",key=key) )
+    async def decr(self,key):
+        return await self._com( dict(command="decr",key=key) )
+
     async def set(self,key,value):
         return await self._com( dict(command="set",key=key,value=value) )
     async def get(self,*key):
@@ -87,6 +93,15 @@ async def redys_handler(reader, writer):
                 elif obj["command"]=="keys":
                     l=list(db.keys())
                     return id,l
+
+                elif obj["command"]=="incr":
+                    k=obj["key"]
+                    db[k]=db.get(k,0)+1
+                    return id,True
+                elif obj["command"]=="decr":
+                    k=obj["key"]
+                    db[k]=db.get(k,0)-1
+                    return id,True
 
                 elif obj["command"]=="register":
                     event=obj["event"]
@@ -152,10 +167,7 @@ async def redys_handler(reader, writer):
 async def Server( address=("localhost",13475) ):
     assert type(address)==tuple
     server = await asyncio.start_server(redys_handler, address[0], address[1])
-
-    async with server:
-        await server.serve_forever()
-
+    await server.wait_closed()
 
 
 if __name__=="__main__":

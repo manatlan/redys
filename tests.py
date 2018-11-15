@@ -111,6 +111,26 @@ class Test(unittest.TestCase):
         assert await r1.subscribe("mychannel")==None
         assert await r2.subscribe("mychannel")=="hello"
 
+    @async_test
+    async def test_incdec(self):
+        r = Client()
+        await r.delete("val")
+        assert await r.get("val")==None
+
+        await r.incr("val")
+        assert await r.get("val")==1
+
+        await r.incr("val")
+        assert await r.get("val")==2
+
+        await r.decr("val")
+        assert await r.get("val")==1
+
+        await r.delete("val")
+        assert await r.get("val")==None
+
+        await r.decr("val")
+        assert await r.get("val")==-1
 
 
 if __name__=="__main__":
