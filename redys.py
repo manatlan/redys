@@ -1,8 +1,6 @@
-import asyncio,pickle,uuid
+import asyncio,pickle,uuid,inspect
 
 MAX=100000000
-db={}
-events={}
 
 ##############################################################################
 ## Client Code
@@ -14,6 +12,18 @@ class Client:
         self.reader=None
         self.writer=None
         self.id=uuid.uuid4().hex
+        r=OpClient("for exploration only")
+        self._methods={n:inspect.getargspec(getattr(r,n)).args[1:] for n in dir(r) if callable(getattr(r, n)) and not n.startswith("_")}
+
+    def __getattr__(self,name): # expose methods of OpClient
+        if name in self._methods:
+            async def _(*a): # no kargs !!!
+                obj=dict(zip( self._methods[name],a ))
+                obj["command"]=name
+                return await self._com( obj )
+            return _
+        else:
+            raise AttributeError("%r object has no attribute %r" % (self.__class__, name))
 
     def __enter__(self):
         return self
@@ -38,115 +48,79 @@ class Client:
             self.writer.close()
 
 
-    async def incr(self,key):
-        return await self._com( dict(command="incr",key=key) )
-    async def decr(self,key):
-        return await self._com( dict(command="decr",key=key) )
-
-    async def set(self,key,value):
-        return await self._com( dict(command="set",key=key,value=value) )
-    async def get(self,*key):
-        return await self._com( dict(command="get",keys=key))
-    async def delete(self,*key):
-        return await self._com( dict(command="del",keys=key))
-    async def keys(self):
-        return await self._com( dict(command="keys"))
-
-    async def subscribe(self,event):
-        return await self._com( dict(command="subscribe",event=event) )
-    async def unsubscribe(self,event):
-        return await self._com( dict(command="unsubscribe",event=event) )
-
-    async def get_event(self,event):
-        return await self._com( dict(command="get_event",event=event) )
-
-    async def publish(self,event,obj):
-        return await self._com( dict(command="publish",event=event,obj=obj) )
-
 
 ##############################################################################
 ## Server Code
 ##############################################################################
+db={}
+events={}
+
+
+class OpClient: # exposed redys's methods
+    def __init__(self,id):
+        self.id=id
+
+    def __call__(self,obj):
+        method=obj["command"]
+        del obj["command"]
+        return getattr(self,method)(**obj)
+
+    def set(self,key,value):
+        db[key]=value
+        return True
+    def get(self,key):
+        return db.get(key,None)
+    def delete(self,key):
+        if key in db: del db[key]
+        return True
+    def keys(self):
+        return list(db.keys())
+    def incr(self,key):
+        db[key]=db.get(key,0)+1
+        return True
+    def decr(self,key):
+        db[key]=db.get(key,0)-1
+        return True
+    def subscribe(self,event):
+        events.setdefault(event,{}).setdefault(self.id,[])
+        return True
+    def unsubscribe(self,event):
+        if event in events:
+            if self.id in events[event]:
+                del events[event][self.id]
+                if len(events[event])==0:
+                    del events[event]
+                return True
+        return False
+    def publish(self,event,obj):
+        if event in events:
+            for i in events[event]:
+                events[event][i].append(obj)
+            return True
+        return False
+    def get_event(self,event):
+        if event in events:
+            if self.id in events[event]:
+                if len(events[event][self.id])>0:
+                    return events[event][self.id].pop(0)
+        return None
+
 async def redys_handler(reader, writer):
-    id=None
-
-    def protocol( id,obj ):
-        if obj["command"]=="init":
-            id=obj["id"]
-            return id,True
-        else:
-            if id:
-                if obj["command"]=="set":
-                    k,v=obj["key"],obj["value"]
-                    db[k]=v
-                    return id,True
-                elif obj["command"]=="get":
-                    keys=obj["keys"]
-                    ll=[db.get(k,None) for k in keys]
-                    v = ll[0] if len(ll)==1 else ll
-                    return id,v
-                elif obj["command"]=="del":
-                    keys=obj["keys"]
-                    for i in keys:
-                        if i in db: del db[i]
-                    return id,True
-                elif obj["command"]=="keys":
-                    l=list(db.keys())
-                    return id,l
-
-                elif obj["command"]=="incr":
-                    k=obj["key"]
-                    db[k]=db.get(k,0)+1
-                    return id,True
-                elif obj["command"]=="decr":
-                    k=obj["key"]
-                    db[k]=db.get(k,0)-1
-                    return id,True
-
-                elif obj["command"]=="subscribe":
-                    event=obj["event"]
-                    events.setdefault(event,{}).setdefault(id,[])
-                    return id,True
-
-                elif obj["command"]=="unsubscribe":
-                    event=obj["event"]
-                    if event in events:
-                        if id in events[event]:
-                            del events[event][id]
-                            if len(events[event])==0:
-                                del events[event]
-                            return id,True
-                    return id,False # unkown registration (id or event)
-
-                elif obj["command"]=="publish":
-                    event,msg=obj["event"],obj["obj"]
-                    if event in events:
-                        for id in events[event]:
-                            events[event][id].append(msg)
-                        return id,True
-                    return id,False   # nobody has registered that
-
-                elif obj["command"]=="get_event":
-                    event=obj["event"]
-                    if event in events:
-                        if id in events[event]:
-                            if len(events[event][id])>0:
-                                return id,events[event][id].pop(0)
-                    return id,None  # empty queue or unknonw event
-
     try:
+        client=None
         while 1:
-            #~ print(":"*80)
-            #~ print("::",id)
-            #~ print("::",db)
-            #~ print("::",events)
-            #~ print(":"*80)
             data = await reader.read(MAX)
             input = pickle.loads(data)
             addr = writer.get_extra_info('peername')
 
-            id,output=protocol(id,input)
-            #~ print(input,"--->",output)
+            if client is None:
+                if input["command"]=="init":
+                    client=OpClient(input["id"])
+                    output=True
+                else:
+                    output=None
+            else:
+                 output = client( input )
 
             writer.write( pickle.dumps(output) )
             await writer.drain()
@@ -154,14 +128,8 @@ async def redys_handler(reader, writer):
     except EOFError:
         pass
     finally:
-        events_to_remove=[]
-        for event in events:
-            if id in events[event]:
-                del events[event][id]
-                if len(events[event])==0:
-                    events_to_remove.append(event)
-        for event in events_to_remove:
-            del events[event]
+        for event in list(events.keys()):
+            client.unsubscribe(event)
         writer.close()
 
 async def Server( address=("localhost",13475) ):

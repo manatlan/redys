@@ -7,7 +7,7 @@ A simple redis-like in pure python, fully asyncio compliant !
 - very quick
 - classic commands : get/set/delete/keys & incr/decr
 - pubsub commands : subscribe/unsubscribe/publish/get_event
-- send/receive everything that is pickable
+- exchange everything that is pickable
 - minimal code size
 
 

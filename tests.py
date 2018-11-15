@@ -13,7 +13,8 @@ class Test(unittest.TestCase):
     @async_test
     async def test_0(self):
         with Client() as c:
-            r=await c.set("jo",42)
+            assert await c.set("jo",42) == True
+            print( await c.get("jo") )
             assert await c.get("jo")==42
 
     @async_test
@@ -27,11 +28,10 @@ class Test(unittest.TestCase):
         assert await r.set("kkk","v") == True
 
         assert await r.get("kkk") == "v"
-        assert await r.get("kkk","jjjj") == ["v",None]
 
         assert "kkk" in await r.keys()
 
-        assert await r.delete("kkk","jjjj") == True
+        assert await r.delete("kkk") == True
 
         assert "kkk" not in await r.keys()
 
@@ -135,5 +135,4 @@ class Test(unittest.TestCase):
 
 if __name__=="__main__":
     unittest.main()
-
 
