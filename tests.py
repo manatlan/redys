@@ -98,6 +98,20 @@ class Test(unittest.TestCase):
         assert await r2.get("yo") == 666
         assert "yo" in await r3.keys()
 
+    @async_test
+    async def test_multi(self):
+        r1 = Client()
+        r2 = Client()
+        rp = Client()
+        assert await r1.register("mychannel")
+        assert await r2.register("mychannel")
+        assert await rp.publish("mychannel","hello")
+        assert await r1.subscribe("mychannel")=="hello"
+        assert await r1.unregister("mychannel")
+        assert await r1.subscribe("mychannel")==None
+        assert await r2.subscribe("mychannel")=="hello"
+
+
 
 if __name__=="__main__":
     unittest.main()

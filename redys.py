@@ -98,7 +98,8 @@ async def redys_handler(reader, writer):
                     if event in events:
                         if id in events[event]:
                             del events[event][id]
-                            del events[event]
+                            if len(events[event])==0:
+                                del events[event]
                             return id,True
                     return id,False # unkown registration (id or event)
 
