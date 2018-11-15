@@ -63,35 +63,34 @@ class Client:
 async def redys_handler(reader, writer):
     id=None
 
-    def protocol( obj ):
-        global id
+    def protocol( id,obj ):
         if obj["command"]=="init":
             id=obj["id"]
-            return True
+            return id,True
         else:
             if id:
                 if obj["command"]=="set":
                     k,v=obj["key"],obj["value"]
                     db[k]=v
-                    return True
+                    return id,True
                 elif obj["command"]=="get":
                     keys=obj["keys"]
                     ll=[db.get(k,None) for k in keys]
                     v = ll[0] if len(ll)==1 else ll
-                    return v
+                    return id,v
                 elif obj["command"]=="del":
                     keys=obj["keys"]
                     for i in keys:
                         if i in db: del db[i]
-                    return True
+                    return id,True
                 elif obj["command"]=="keys":
                     l=list(db.keys())
-                    return l
+                    return id,l
 
                 elif obj["command"]=="register":
                     event=obj["event"]
                     events.setdefault(event,{}).setdefault(id,[])
-                    return True
+                    return id,True
 
                 elif obj["command"]=="unregister":
                     event=obj["event"]
@@ -99,37 +98,37 @@ async def redys_handler(reader, writer):
                         if id in events[event]:
                             del events[event][id]
                             del events[event]
-                            return True
-                    return False # unkown registration (id or event)
+                            return id,True
+                    return id,False # unkown registration (id or event)
 
                 elif obj["command"]=="publish":
                     event,msg=obj["event"],obj["obj"]
                     if event in events:
                         for id in events[event]:
                             events[event][id].append(msg)
-                        return True
-                    return False   # nobody has registered that
+                        return id,True
+                    return id,False   # nobody has registered that
 
                 elif obj["command"]=="subscribe":
                     event=obj["event"]
                     if event in events:
                         if id in events[event]:
                             if len(events[event][id])>0:
-                                return events[event][id].pop(0)
-                    return None  # empty queue or unknonw event
+                                return id,events[event][id].pop(0)
+                    return id,None  # empty queue or unknonw event
 
     try:
         while 1:
-            print(":"*80)
-            print("::",id)
-            print("::",db)
-            print("::",events)
-            print(":"*80)
+            #~ print(":"*80)
+            #~ print("::",id)
+            #~ print("::",db)
+            #~ print("::",events)
+            #~ print(":"*80)
             data = await reader.read(MAX)
             input = pickle.loads(data)
             addr = writer.get_extra_info('peername')
 
-            output=protocol(input)
+            id,output=protocol(id,input)
             #~ print(input,"--->",output)
 
             writer.write( pickle.dumps(output) )
@@ -138,15 +137,14 @@ async def redys_handler(reader, writer):
     except EOFError:
         pass
     finally:
-
-        #~ events_to_remove=[]
-        #~ for event in events:
-            #~ if id in events[event]:
-                #~ del events[event][id]
-                #~ if len(events[event])==0:
-                    #~ events_to_remove.append(event)
-        #~ for event in events_to_remove:
-            #~ del events[event]
+        events_to_remove=[]
+        for event in events:
+            if id in events[event]:
+                del events[event][id]
+                if len(events[event])==0:
+                    events_to_remove.append(event)
+        for event in events_to_remove:
+            del events[event]
         writer.close()
 
 async def Server( address=("localhost",13475) ):
@@ -160,14 +158,14 @@ async def Server( address=("localhost",13475) ):
 
 if __name__=="__main__":
 
-    async def other():
-        while 1:
-            await asyncio.sleep(0.5)
-            print("alive")
+    #~ async def other():
+        #~ while 1:
+            #~ await asyncio.sleep(0.5)
+            #~ print("alive")
 
-    async def main():
-        await asyncio.gather(
-            other(),Server()
-        )
+    #~ async def main():
+        #~ await asyncio.gather(
+            #~ other(),Server()
+        #~ )
 
-    asyncio.run(main())
+    asyncio.run( Server())
