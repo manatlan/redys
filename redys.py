@@ -34,7 +34,8 @@ class Client:
         return pickle.loads(data)
 
     def close(self):
-        self.writer.close()
+        if self.writer:
+            self.writer.close()
 
     async def set(self,key,value):
         return await self._com( dict(command="set",key=key,value=value) )
