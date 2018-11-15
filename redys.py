@@ -52,13 +52,13 @@ class Client:
     async def keys(self):
         return await self._com( dict(command="keys"))
 
-    async def register(self,event):
-        return await self._com( dict(command="register",event=event) )
-    async def unregister(self,event):
-        return await self._com( dict(command="unregister",event=event) )
-
     async def subscribe(self,event):
         return await self._com( dict(command="subscribe",event=event) )
+    async def unsubscribe(self,event):
+        return await self._com( dict(command="unsubscribe",event=event) )
+
+    async def get_event(self,event):
+        return await self._com( dict(command="get_event",event=event) )
 
     async def publish(self,event,obj):
         return await self._com( dict(command="publish",event=event,obj=obj) )
@@ -103,12 +103,12 @@ async def redys_handler(reader, writer):
                     db[k]=db.get(k,0)-1
                     return id,True
 
-                elif obj["command"]=="register":
+                elif obj["command"]=="subscribe":
                     event=obj["event"]
                     events.setdefault(event,{}).setdefault(id,[])
                     return id,True
 
-                elif obj["command"]=="unregister":
+                elif obj["command"]=="unsubscribe":
                     event=obj["event"]
                     if event in events:
                         if id in events[event]:
@@ -126,7 +126,7 @@ async def redys_handler(reader, writer):
                         return id,True
                     return id,False   # nobody has registered that
 
-                elif obj["command"]=="subscribe":
+                elif obj["command"]=="get_event":
                     event=obj["event"]
                     if event in events:
                         if id in events[event]:
