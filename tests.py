@@ -10,11 +10,11 @@ def async_test(coro):
 
 class Test(unittest.TestCase):
 
-    #~ @async_test
-    #~ async def test_xxx(self):
-        #~ c=Client()
-        #~ r=await c.set("jo",42)
-        #~ await asyncio.sleep(3)
+    @async_test
+    async def test_0(self):
+        with Client() as c:
+            r=await c.set("jo",42)
+            assert await c.get("jo")==42
 
     @async_test
     async def test_1(self):
