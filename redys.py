@@ -13,7 +13,7 @@ class Client:
         self.writer=None
         self.id=uuid.uuid4().hex
         r=OpClient("for exploration only")
-        self._methods={n:inspect.getargspec(getattr(r,n)).args[1:] for n in dir(r) if callable(getattr(r, n)) and not n.startswith("_")}
+        self._methods={n:list(inspect.signature(getattr(r,n)).parameters) for n in dir(r) if callable(getattr(r, n)) and not n.startswith("_")}
 
     def __getattr__(self,name): # expose methods of OpClient
         if name in self._methods:
