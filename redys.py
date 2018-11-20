@@ -3,13 +3,14 @@
 import asyncio,pickle,uuid,inspect,time
 
 MAX=100000000
-__version__="0.9.0"
+__version__="0.9.1"
 
 ##############################################################################
 ## Client Code
 ##############################################################################
 from concurrent.futures import ThreadPoolExecutor
-executor = ThreadPoolExecutor(max_workers=1)
+
+sideloop = asyncio.new_event_loop()
 
 class Client:
     def __init__(self,address:tuple=("localhost",13475)):
@@ -20,7 +21,8 @@ class Client:
         r=OpClient("for intropspection only")
         self._methods={n:inspect.signature(getattr(r,n)) for n in dir(r) if callable(getattr(r, n)) and not n.startswith("_")}
         del r
-        self._sideloop = asyncio.new_event_loop()
+
+
 
     def __getattr__(self,name): # expose methods of OpClient
         if name in self._methods:
@@ -30,14 +32,13 @@ class Client:
                 #~ ba=self._methods[name].bind(*a,**k)
                 #~ return await self._com( dict(command=name,args=ba.args,kwargs=ba.kwargs) )
 
-
             ## SYNC VERSION
             def _(*a,**k):
                 ba=self._methods[name].bind(*a,**k)
                 coro = self._com( dict(command=name,args=ba.args,kwargs=ba.kwargs) )
-                r=executor.submit(self._sideloop.run_until_complete, coro )
-                return r.result()
-
+                with ThreadPoolExecutor(max_workers=1) as exe:
+                    r=exe.submit(sideloop.run_until_complete, coro )
+                    return r.result()
             return _
         else:
             raise AttributeError("%r object has no attribute %r" % (self.__class__, name))
@@ -64,10 +65,8 @@ class Client:
         return obj
 
     def close(self):
-        try:
-            self.writer.close()
-        except:
-            pass
+        self.writer.close()
+        sideloop.run_until_complete( self.writer.wait_closed() )
 
 
 
