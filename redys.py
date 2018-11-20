@@ -3,7 +3,7 @@
 import asyncio,pickle,uuid,inspect,time
 
 MAX=100000000
-__version__="0.9.1"
+__version__="0.9.2"
 
 ##############################################################################
 ## Client Code
@@ -65,8 +65,11 @@ class Client:
         return obj
 
     def close(self):
-        self.writer.close()
-        sideloop.run_until_complete( self.writer.wait_closed() )
+        try:
+            self.writer.close()
+            sideloop.run_until_complete( self.writer.wait_closed() )
+        except:
+            pass
 
 
 
