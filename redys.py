@@ -3,7 +3,7 @@
 import asyncio,pickle,uuid,inspect,time
 
 MAX=100000000
-__version__="0.9.2"
+__version__="0.9.3"
 
 ##############################################################################
 ## Client Code
@@ -11,6 +11,12 @@ __version__="0.9.2"
 from concurrent.futures import ThreadPoolExecutor
 
 sideloop = asyncio.new_event_loop()
+
+def async2sync(coro):
+    with ThreadPoolExecutor(max_workers=1) as exe:
+        r=exe.submit(sideloop.run_until_complete, coro )
+        return r.result()
+
 
 class Client:
     def __init__(self,address:tuple=("localhost",13475)):
@@ -35,10 +41,7 @@ class Client:
             ## SYNC VERSION
             def _(*a,**k):
                 ba=self._methods[name].bind(*a,**k)
-                coro = self._com( dict(command=name,args=ba.args,kwargs=ba.kwargs) )
-                with ThreadPoolExecutor(max_workers=1) as exe:
-                    r=exe.submit(sideloop.run_until_complete, coro )
-                    return r.result()
+                return async2sync( self._com( dict(command=name,args=ba.args,kwargs=ba.kwargs) ) )
             return _
         else:
             raise AttributeError("%r object has no attribute %r" % (self.__class__, name))
@@ -67,7 +70,7 @@ class Client:
     def close(self):
         try:
             self.writer.close()
-            sideloop.run_until_complete( self.writer.wait_closed() )
+            async2sync( self.writer.wait_closed() )
         except:
             pass
 
