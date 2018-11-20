@@ -1,6 +1,8 @@
 # redys
 A simple redis-like in pure python3, fully asyncio compliant !
 
+[on pypi/redys](https://pypi.org/project/redys/)
+
 ### features
 
 - asyncio compliant
