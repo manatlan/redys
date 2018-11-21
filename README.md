@@ -1,24 +1,25 @@
 # redys
 
-A simple redis-like in pure python3, fully asyncio compliant !
+A simple redis-like in pure python3, fully asyncio/thread/process compliant !
 
 [on pypi/redys](https://pypi.org/project/redys/)
 
 ### features
 
 - asyncio compliant
-- client sync methods
+- client Sync (Client) & Async (AClient)
 - very quick
-- classic commands : get/set/delete/keys & incr/decr
-- sets commands : sadd/srem
-- queue commands : rpush/lpush/rpop/lpop
-- pubsub commands : subscribe/unsubscribe/get_event & publish
-- cache commands : setex
-- ping command ;-)
+- `classics` commands : get/set/delete/keys & incr/decr
+- `sets` commands : sadd/srem
+- `queue` commands : rpush/lpush/rpop/lpop
+- `pubsub` commands : subscribe/unsubscribe/get_event & publish
+- `cache` commands : setex
+- `ping` command ;-)
 - exchange everything that is pickable (except None)
 - raise real python exception in client side
 - minimal code size
 - works well on GAE Standard (2nd generation/py37)
+- unittests are autonomous (it runs a server)
 - just in-memory !
 
 ### why ?
@@ -30,5 +31,7 @@ async/threads/process(workers)/multi-hosts world, to share a unique source of tr
 
 ### nb
 
+- The sync client (`Client`) use threads, so it can't live in the same loop as the server (`Server`). It's better to use it in another thread or process.
+- The async client (`AClient`) can live in the same loop as the server (`Server`), but don't forget to await each methods (which are coroutines in async version)
 - Not fully/concurrency tested. Use at own risk ;-)
-
+- See [tests](https://github.com/manatlan/redys/blob/master/tests.py) for examples

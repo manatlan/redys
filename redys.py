@@ -3,7 +3,7 @@
 import asyncio,pickle,uuid,inspect,time
 
 MAX=100000000
-__version__="0.9.3"
+__version__="0.9.4"
 
 ##############################################################################
 ## Client Code
@@ -19,6 +19,7 @@ def async2sync(coro):
 
 
 class Client:
+    asynk=False
     def __init__(self,address:tuple=("localhost",13475)):
         self.address=address
         self.reader=None
@@ -26,23 +27,20 @@ class Client:
         self.id=uuid.uuid4().hex
         r=OpClient("for intropspection only")
         self._methods={n:inspect.signature(getattr(r,n)) for n in dir(r) if callable(getattr(r, n)) and not n.startswith("_")}
-        del r
-
-
 
     def __getattr__(self,name): # expose methods of OpClient
         if name in self._methods:
-
             ## ASYNC VERSION
-            #~ async def _(*a,**k):
-                #~ ba=self._methods[name].bind(*a,**k)
-                #~ return await self._com( dict(command=name,args=ba.args,kwargs=ba.kwargs) )
+            async def asyncCall(*a,**k):
+                ba=self._methods[name].bind(*a,**k)
+                return await self._com( dict(command=name,args=ba.args,kwargs=ba.kwargs) )
 
             ## SYNC VERSION
-            def _(*a,**k):
+            def syncCall(*a,**k):
                 ba=self._methods[name].bind(*a,**k)
                 return async2sync( self._com( dict(command=name,args=ba.args,kwargs=ba.kwargs) ) )
-            return _
+                
+            return asyncCall if self.asynk else syncCall
         else:
             raise AttributeError("%r object has no attribute %r" % (self.__class__, name))
 
@@ -70,10 +68,13 @@ class Client:
     def close(self):
         try:
             self.writer.close()
-            async2sync( self.writer.wait_closed() )
+            if not asynk:
+                async2sync( self.writer.wait_closed() )
         except:
             pass
 
+class AClient(Client):
+    asynk=True
 
 
 
@@ -263,16 +264,5 @@ async def Server( address:tuple =("localhost",13475) ):
 
 
 if __name__=="__main__":
-
-    #~ async def other():
-        #~ while 1:
-            #~ await asyncio.sleep(0.5)
-            #~ print("alive")
-
-    #~ async def main():
-        #~ await asyncio.gather(
-            #~ other(),Server()
-        #~ )
-
     loop=asyncio.get_event_loop()
     loop.run_until_complete( Server() )
