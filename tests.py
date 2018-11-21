@@ -354,3 +354,7 @@ if __name__=="__main__":
     exe = ThreadPoolExecutor(1)
     loop.run_in_executor( exe, syncTests ).add_done_callback(lambda r:loop.stop())
     loop.run_forever()
+
+    ## tests Sync Client in custom executor
+    loop.run_in_executor( None, syncTests ).add_done_callback(lambda r:loop.stop())
+    loop.run_forever()
