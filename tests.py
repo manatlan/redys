@@ -346,14 +346,14 @@ if __name__=="__main__":
     loop.run_until_complete( asyncTests() )
 
     ## tests Sync Client from another process
-    exe=ProcessPoolExecutor(1)
-    loop.run_in_executor( exe, syncTests ).add_done_callback(lambda r:loop.stop())
-    loop.run_forever()
+    with ProcessPoolExecutor(1) as exe:
+        loop.run_in_executor( exe, syncTests ).add_done_callback(lambda r:loop.stop())
+        loop.run_forever()
 
     ## tests Sync Client from another thread
-    exe = ThreadPoolExecutor(1)
-    loop.run_in_executor( exe, syncTests ).add_done_callback(lambda r:loop.stop())
-    loop.run_forever()
+    with ThreadPoolExecutor(1) as exe:
+        loop.run_in_executor( exe, syncTests ).add_done_callback(lambda r:loop.stop())
+        loop.run_forever()
 
     ## tests Sync Client in custom executor
     loop.run_in_executor( None, syncTests ).add_done_callback(lambda r:loop.stop())
