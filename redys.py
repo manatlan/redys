@@ -3,7 +3,7 @@
 import asyncio,pickle,uuid,inspect,time
 
 MAX=100000000
-__version__="0.9.4"
+__version__="0.9.5"
 
 ##############################################################################
 ## Client Code
@@ -98,14 +98,14 @@ class OpClient: # exposed redys's methods (https://redis.io/commands#generic)
 
     #cache
     #--------------------------------------------
-    def setex(self,key:str,ttl:int,value):
+    def setex(self,key:str,ttl:int,value): #useless since ttl is available in set()
         db[key]=(value,time.time()+ttl if ttl else None)
         return True
 
     #classics
     #--------------------------------------------
-    def set(self,key:str,value):
-        return self.setex(key,None,value)
+    def set(self,key:str,value,ttl:int=None):
+        return self.setex(key,ttl,value)
 
     def _get(self,key:str):
         t=db.get(key,(None,None))

@@ -212,6 +212,13 @@ class Test(unittest.TestCase):
         time.sleep(0.05)
         assert "kiki" not in r.keys()
 
+    def test_cache4(self):
+        r = Client()
+        r.set("kiki",[1,2,3],0.05)
+        assert "kiki" in r.keys()
+        time.sleep(0.05)
+        assert "kiki" not in r.keys()
+
 
 
 
