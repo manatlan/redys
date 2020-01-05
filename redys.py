@@ -3,7 +3,7 @@
 import asyncio,pickle,uuid,inspect,time
 
 MAX=100000000
-__version__="0.9.5"
+__version__="0.9.6"
 
 ##############################################################################
 ## Client Code
@@ -83,6 +83,7 @@ class AClient(Client):
 ##############################################################################
 db={}
 events={}
+watchs=[]   # watch ttl
 class OpClient: # exposed redys's methods (https://redis.io/commands#generic)
     def __init__(self,id:str):
         self.id=id
@@ -100,6 +101,7 @@ class OpClient: # exposed redys's methods (https://redis.io/commands#generic)
     #--------------------------------------------
     def setex(self,key:str,ttl:int,value): #useless since ttl is available in set()
         db[key]=(value,time.time()+ttl if ttl else None)
+        if not( key in watchs): watchs.append( key )
         return True
 
     #classics
@@ -232,7 +234,17 @@ class OpClient: # exposed redys's methods (https://redis.io/commands#generic)
 ##############################################################################
 ## Server Code
 ##############################################################################
+async def watcher(): # watch key with ttl, to remove them automatically
+    while 1:
+        await asyncio.sleep(1)
+        for key in []+watchs:
+            r=OpClient( "for ttl watcher" ).get(key)
+            if r is None:
+                watchs.remove(key)
+
+
 async def redys_handler(reader, writer):
+    asyncio.ensure_future(watcher())
     try:
         client=None
         while 1:
