@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 import asyncio,pickle,uuid,inspect,time
 
-MAX=100000000
-__version__="0.9.6"
+__version__="0.9.7"
 
 ##############################################################################
 ## Client Code
@@ -17,6 +16,18 @@ def async2sync(coro):
         r=exe.submit(sideloop.run_until_complete, coro )
         return r.result()
 
+async def readall( reader ):
+    CHUNK_LIMIT=8192
+    response = b''
+    while True:
+        chunk = await reader.read(CHUNK_LIMIT)
+        if chunk:
+            response += chunk
+            if len(chunk) < CHUNK_LIMIT:
+                break
+        else:
+            break
+    return response
 
 class Client:
     asynk=False
@@ -39,7 +50,7 @@ class Client:
             def syncCall(*a,**k):
                 ba=self._methods[name].bind(*a,**k)
                 return async2sync( self._com( dict(command=name,args=ba.args,kwargs=ba.kwargs) ) )
-                
+
             return asyncCall if self.asynk else syncCall
         else:
             raise AttributeError("%r object has no attribute %r" % (self.__class__, name))
@@ -60,7 +71,7 @@ class Client:
         self.writer.write(pickle.dumps(obj))
         await self.writer.drain()
 
-        data = await self.reader.read(MAX)
+        data = await readall(self.reader)
         obj=pickle.loads(data)
         if type(obj)==Exception: raise obj
         return obj
@@ -248,7 +259,7 @@ async def redys_handler(reader, writer):
     try:
         client=None
         while 1:
-            input = pickle.loads(await reader.read(MAX))
+            input = pickle.loads(await readall(reader))
 
             if client is None:
                 if input["command"]=="init":

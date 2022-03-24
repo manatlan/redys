@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "redys"
+version = "0.9.7"
+description = "A simple redis-like in pure python3, fully asyncio compliant"
+authors = ["manatlan <manatlan@gmail.com>"]
+readme = 'README.md'
+license="MIT"
+keywords=['python3', 'redis', 'pickle', 'asyncio', 'queue', 'cache', 'set', "pubsub", "sync", "async"]
+homepage = "https://github.com/manatlan/redys"
+repository = "https://github.com/manatlan/redys"
+documentation = "https://github.com/manatlan/redys"
+classifiers = [
+        "Operating System :: OS Independent",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: Software Development :: Build Tools",
+]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+
+[tool.poetry.dev-dependencies]
+pytest = "^3.0"
+pytest-cov = "^2.6"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
