@@ -7,8 +7,7 @@
             "label": "build dist for pypi",
             "type": "shell",
             "command": [
-                    "rm -f dist/*.tar.gz dist/*.whl",
-                    "&& python3 setup.py sdist bdist_wheel --universal"
+                    "poetry build",
             ],
             "group": {
                 "kind": "build",
@@ -18,18 +17,18 @@
             "presentation": {
                 "panel": "new",
                 "focus": true
-            }            
+            }
         },
         {
             "label": "upload to pypi",
             "type": "shell",
-            "command": "/usr/local/bin/twine upload dist/redys-*.tar.gz dist/redys-*.whl",
+            "command": "poetry publish",
             "problemMatcher": [],
             "presentation": {
                 "panel": "new",
                 "focus": true
             }
         },
-     
+
     ]
 }
