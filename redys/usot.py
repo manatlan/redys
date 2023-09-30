@@ -11,17 +11,6 @@ import logging,pickle
 from typing import Callable
 logger = logging.getLogger(__name__)
 
-class SessionMemory:
-    def __init__(self):
-        self.SESSIONS={}
-    def get(self,uid:str):
-        return self.SESSIONS.get(uid,{})
-    def set(self,uid:str,value:dict):
-        assert isinstance(value,dict)
-        self.SESSIONS[uid]=value
-
-
-
 import multiprocessing,threading,time
 from concurrent.futures import ThreadPoolExecutor
 
@@ -124,7 +113,6 @@ class Usot:
         if self._p:
             if isinstance(self._p, multiprocessing.Process):
                 self._p.terminate() # process mode
-            self._p.join()
 
 
     @property
@@ -172,59 +160,3 @@ class Usot:
                 return _
 
         return ProxyASync()
-
-
-def test_sync(client):
-    client.set("uid1", dict(a=43))
-    assert client.get("uid1") == dict(a=43)
-
-async def test_async(client):
-    await client.set("uid1", dict(a=42))
-    assert await client.get("uid1") == dict(a=42)
-
-
-
-if __name__=="__main__":
-    import pytest
-    import logging,multiprocessing,threading
-    logging.basicConfig(format='[%(levelname)-5s] %(name)s: %(message)s',level=logging.DEBUG)
-
-
-    async def test_thread():
-        print(">>> THREAD")
-        p=Usot(SessionMemory,port=19999)
-        p.start_thread()
-        await asyncio.sleep(0.2)    # slowdown to let server start ;-(
-        try:
-            await test_async( p.clientasync )
-            test_sync( p.clientsync )
-        finally:
-            p.stop()
-
-    async def test_process():
-        print(">>> PROCESS")
-        p=Usot(SessionMemory,port=19999)
-        p.start_process()
-        await asyncio.sleep(0.2)    # slowdown to let server start ;-(
-        try:
-            await test_async( p.clientasync )
-            test_sync( p.clientsync )
-        finally:
-            p.stop()
-
-    async def test_task():
-        print(">>> TASK")
-        p=Usot(SessionMemory,port=19999)
-        p.start()
-        try:
-            await test_async( p.clientasync )
-            #~ test_sync( p.clientsync )        # sync not possible
-        finally:
-            p.stop()
-
-    # asyncio.run( test_process() )
-    # asyncio.run( test_thread() )
-    asyncio.run( test_task() )
-    # asyncio.run( test_task() )
-    # asyncio.run( test_thread() )
-    # asyncio.run( test_process() )
