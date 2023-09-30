@@ -9,8 +9,7 @@ def server():
     yield "resource"
     print("teardown")
 
-@pytest.mark.asyncio
-async def test_ping( server ):
+def test_ping( server ):
     with redys.Client() as bus:
         x = bus.ping()
         assert x == "pong"
