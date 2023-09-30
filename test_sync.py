@@ -10,7 +10,7 @@ def server():
     yield "resource"
     try:
         redys.Client().KILL()
-    except ConnectionRefusedError:
+    except:
         pass
 
 
