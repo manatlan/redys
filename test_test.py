@@ -9,6 +9,7 @@ def server():
     yield "resource"
     print("teardown")
 
+@pytest.mark.asyncio
 async def test_fun( server ):
     with redys.AClient() as bus:
         await bus.set("val",42)
