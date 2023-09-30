@@ -9,7 +9,7 @@ from redys.v2 import ServerProcess,AClient,Client
 @pytest.fixture()
 def server():
     s=ServerProcess()
-    time.sleep(0.1)
+    time.sleep(1)
     yield s
     s.stop()
 
