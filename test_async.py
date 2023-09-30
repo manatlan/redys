@@ -1,6 +1,7 @@
 import pytest
 import asyncio
-import redys,subprocess
+import redys
+import subprocess
 
 from test_sync import server
 

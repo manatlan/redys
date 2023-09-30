@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 import asyncio,unittest,time
-from redys import Client,AClient,Server
+from redys.redys import Client,AClient,Server
 
 """
 This file is not maintained anymore !
