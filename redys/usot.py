@@ -137,11 +137,6 @@ class Usot:
         class ProxyASync:
             def __getattr__(this,name:str):
                 async def _(*a,**k):
-                    try: # ensure server was started
-                        await self._task
-                    except:
-                        pass
-
                     reader, writer = await asyncio.open_connection(self._host,self._port)
                     question = pickle.dumps( (name,a,k) )
                     # logger.debug('Sending data of size: %s',len(question))
