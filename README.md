@@ -8,19 +8,22 @@ A simple redis-like in pure python3, fully asyncio/thread/process compliant !
 
 - asyncio compliant
 - client Sync (Client) & Async (AClient)
+- 100% tested on all platforms ("3.7", "3.8", "3.9", "3.10", "3.11" on  ubuntu-latest, macos-latest, windows-latest) **NEW**
 - very quick
 - `classics` commands : get/set/delete/keys & incr/decr
 - `sets` commands : sadd/srem
 - `queue` commands : rpush/lpush/rpop/lpop
 - `pubsub` commands : subscribe/unsubscribe/get_event & publish
 - `cache` commands : setex
-- `ping` command ;-)
+- `ping()` command ;-)
+- `KILL()` command (so a client can kill the server) **NEW**
 - exchange everything that is pickable (except None)
 - raise real python exception in client side
 - minimal code size
 - works well on GAE Standard (2nd generation/py37)
-- unittests are autonomous (it runs a server)
 - just in-memory !
+
+
 
 ### why ?
 
