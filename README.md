@@ -36,4 +36,4 @@ async/threads/process(workers)/multi-hosts world, to share a unique source of tr
 - Not fully/concurrency tested. Use at own risk ;-)
 - See [tests](https://github.com/manatlan/redys/blob/master/tests.py) for examples
 
-BTW, I use it in production for one year : and no problems at all !!!! (it works as excepted)
+BTW, I use it in production since 2018: and no problems at all !!!! (it works as excepted)
