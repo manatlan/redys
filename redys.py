@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import asyncio,pickle,uuid,inspect,time
 
-__version__="0.9.7"
+__version__ = "0.0.0" # auto-updated
 
 ##############################################################################
 ## Client Code

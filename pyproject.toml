@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "redys"
-version = "0.9.7"
+version = "0.0.0" # auto-updated
 description = "A simple redis-like in pure python3, fully asyncio compliant"
 authors = ["manatlan <manatlan@gmail.com>"]
 readme = 'README.md'

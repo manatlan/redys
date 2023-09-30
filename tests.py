@@ -3,6 +3,15 @@
 import asyncio,unittest,time
 from redys import Client,AClient,Server
 
+"""
+This file is not maintained anymore !
+all tests have been reported in pytests files "test_*.py"
+
+But I leave it here, because there are some good code (async_test, run_in_executore, threadpool, etc ...)
+BUT AFAIK : it's broken currently ;-)
+
+30/09/2023 manatlan
+"""
 
 def async_test(coro):
     def wrapper(*a, **k):
