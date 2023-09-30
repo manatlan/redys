@@ -26,4 +26,5 @@ jobs:
       - name: poetry run pytest
         run: | 
             poetry install --with dev
+            python3 -m pip install pytest -U
             poetry run pytest
