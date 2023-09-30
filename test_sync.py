@@ -1,13 +1,20 @@
 import pytest
-import time
+import time,os,signal
 import redys
 import subprocess
 
 @pytest.fixture()
 def server():
-    subprocess.run(["python3","-c","import asyncio,redys; asyncio.run(redys.Server())"])
+    subprocess.Popen(["python3","-c","import asyncio,redys; asyncio.run(redys.Server())"])
+    time.sleep(0.5)
     yield "resource"
-    print("teardown")
+    try:
+        redys.Client().KILL()
+    except ConnectionRefusedError:
+        pass
+
+
+
 
 def test_ping( server ):
     with redys.Client() as bus:

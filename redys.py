@@ -108,6 +108,10 @@ class OpClient: # exposed redys's methods (https://redis.io/commands#generic)
     def ping(self):
         return "pong"
 
+    def KILL(self):
+        return True
+
+
     #cache
     #--------------------------------------------
     def setex(self,key:str,ttl:int,value): #useless since ttl is available in set()
@@ -246,21 +250,22 @@ class OpClient: # exposed redys's methods (https://redis.io/commands#generic)
 ## Server Code
 ##############################################################################
 async def watcher(): # watch key with ttl, to remove them automatically
-    while 1:
+    global watchs
+    while watchs is not None:
         await asyncio.sleep(1)
         for key in []+watchs:
             r=OpClient( "for ttl watcher" ).get(key)
             if r is None:
                 watchs.remove(key)
-
+    print("END")
 
 async def redys_handler(reader, writer):
-    asyncio.ensure_future(watcher())
+    global watchs,server
     try:
         client=None
+
         while 1:
             input = pickle.loads(await readall(reader))
-
             if client is None:
                 if input["command"]=="init":
                     client=OpClient(input["id"])
@@ -273,15 +278,22 @@ async def redys_handler(reader, writer):
             writer.write( pickle.dumps(output) )
             await writer.drain()
 
+            if input.get("command")=="KILL":
+                print("KILLED")
+                watchs=None
+                server.close()
+
     except EOFError:
         pass
     finally:
+#        watchs=None # force watchers loop to stop
         for event in list(events.keys()):
             client.unsubscribe(event)
         writer.close()
 
-
+server=None
 async def Server( address:tuple =("localhost",13475) ):
+    global server
     server = await asyncio.start_server(redys_handler, address[0], address[1])
     await server.wait_closed()
 

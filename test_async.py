@@ -11,6 +11,13 @@ async def test_ping( server ):
         x = await bus.ping()
         assert x == "pong"
 
+@pytest.mark.asyncio
+async def test_kill( server ):
+    with redys.AClient() as bus:
+        x = await bus.KILL()
+        assert x is True
+
+
 
 @pytest.mark.asyncio
 async def test_asyncTests( server ):
@@ -39,3 +46,7 @@ async def test_asyncTests( server ):
     assert await r.get("v")==["2"]
     assert await r.delete("v")==True
     assert "v" not in await r.keys()
+
+if __name__=="__main__":
+
+    asyncio.run(test_kill("x"))
