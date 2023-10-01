@@ -1,7 +1,7 @@
 import pytest
 import asyncio
 import redys,time
-import subprocess
+import multiprocessing
 
 from redys.v2 import ServerProcess,AClient,Client
 
@@ -76,3 +76,25 @@ def test_sync( server ):
     assert bus.rpop("v")==3
     assert bus.get("v")==["2"]
     assert bus.delete("v")==True
+
+# def p1():
+#     bus=Client()
+#     bus.subscribe("receptor")
+
+#     ll=[]
+#     while 1:
+#         event = bus.get_event("receptor")
+#         if event is not None:
+#             if event =="end":
+#                 break
+#             ll.append(event)
+
+# def p2():
+#     bus=Client()
+#     for i in range(100):
+#         assert bus.publish("receptor",i)
+#     assert bus.publish("receptor","end")
+
+# def test_events( server ):
+#     multiprocessing.Process(p1).start()
+#     multiprocessing.Process(p2).start()
