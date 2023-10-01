@@ -130,6 +130,15 @@ class Usot:
                     sideloop.close()
                     return retour
                 return _
+            #-------------------------------------
+            # just for compatibility with original
+            # (there is no real context needs)
+            #-------------------------------------
+            def __enter__(self):
+                return self
+            def __exit__(self,*args):
+                pass
+            #-------------------------------------
         return ProxySync()
 
     @property
@@ -153,5 +162,13 @@ class Usot:
                     else:
                         return reponse
                 return _
-
+            #-------------------------------------
+            # just for compatibility with original
+            # (there is no real context needs)
+            #-------------------------------------
+            def __enter__(self):
+                return self
+            def __exit__(self,*args):
+                pass
+            #-------------------------------------
         return ProxyASync()
