@@ -19,9 +19,20 @@ class Redys2:
         self.events={}
         self.id="XXXXXXXXXXXXXX"
 
+    # #TODO: add task on this
+    # async def watcher(self): # watch key with ttl, to remove them automatically
+    #     while self.watchs is not None:
+    #         await asyncio.sleep(1)
+    #         for key in self.watchs:
+    #             r=self.get(key)
+    #             if r is None:
+    #                 self.remove(key)
+
+
     def ping(self):
         return "pong"
 
+    # TODO: really got sense ???
     # def KILL(self):
     #     return True
 
