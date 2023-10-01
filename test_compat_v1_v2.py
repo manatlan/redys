@@ -3,25 +3,21 @@ import asyncio
 import redys,time
 import multiprocessing
 
-from redys.v2 import ServerProcess,AClient,Client
+import redys
+import redys.v2
 
+from test_sync import server as server1
 
 @pytest.fixture()
-def server():
-    s=ServerProcess()
+def server2():
+    s=redys.v2.ServerProcess()
     time.sleep(1)
     yield s
     s.stop()
 
 
-@pytest.mark.asyncio
-async def test_async2( server ):
-    bus=AClient()
+async def assert_async( bus ):
     assert "pong" == await bus.ping()
-
-    assert None == await bus.get("a")
-
-    # await bus.set("a","kkkkkkkkkkkk"*10_000_000)    # grand max
 
     assert await bus.set("v",12)
     assert await bus.incr("v")==13
@@ -48,9 +44,7 @@ async def test_async2( server ):
     assert await bus.delete("v")==True
 
 
-
-def test_sync( server ):
-    bus=Client()
+def assert_sync( bus ):
     assert "pong" == bus.ping()
 
     assert bus.set("v",12)
@@ -77,24 +71,60 @@ def test_sync( server ):
     assert bus.get("v")==["2"]
     assert bus.delete("v")==True
 
-# def p1():
-#     bus=Client()
-#     bus.subscribe("receptor")
+@pytest.mark.asyncio
+def test_async1( server1 ):
+    assert_sync( redys.Client() )
 
-#     ll=[]
-#     while 1:
-#         event = bus.get_event("receptor")
-#         if event is not None:
-#             if event =="end":
-#                 break
-#             ll.append(event)
+@pytest.mark.asyncio
+async def test_async2( server2 ):
+    await assert_async( redys.v2.AClient() )
 
-# def p2():
-#     bus=Client()
-#     for i in range(100):
-#         assert bus.publish("receptor",i)
-#     assert bus.publish("receptor","end")
 
-# def test_events( server ):
-#     multiprocessing.Process(p1).start()
-#     multiprocessing.Process(p2).start()
+def test_sync1( server1 ):
+    assert_sync( redys.Client() )
+
+def test_sync2( server2 ):
+    assert_sync( redys.v2.Client() )
+
+
+def p1():
+    bus=redys.v2.Client()
+    bus.subscribe("receptor")
+
+    ll=[]
+    while 1:
+        event = bus.get_event("receptor")
+        if event is not None:
+            if event =="end":
+                break
+            else:
+                ll.append(event)
+
+    assert bus.publish("result",ll)
+
+def p2():
+    with redys.v2.Client() as bus:  # <- test with/context (like v1)
+        for i in range(10):
+            assert bus.publish("receptor",i)
+        assert bus.publish("receptor","end")
+
+def test_events2( server2 ):
+    bus=redys.v2.Client()
+
+    pid1=multiprocessing.Process(target=p1)
+    pid1.start()
+    pid2=multiprocessing.Process(target=p2)
+    pid2.start()
+
+    bus.subscribe("result")
+
+    while 1:
+        event = bus.get_event("result")
+        if event:
+            assert event==[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            break
+
+    pid1.terminate()
+    pid2.terminate()
+
+

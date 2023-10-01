@@ -171,7 +171,7 @@ class Redys2:
                     return self.events[event][self.id].pop(0)
         return None
 
-REDYS2=ServOne(Redys2,port=13475)
+REDYS2=ServOne(Redys2,port=23475)
 
 def Server():
     """ run server in current loop """
