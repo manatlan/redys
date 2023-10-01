@@ -17,7 +17,7 @@ class Redys2:
         self.dico={}
         self.watchs=[]
         self.events={}
-        self.id="XXXXXXXXXXXXXX"
+        self.id="XXXXXXXXXXXXXX"    #TODO: really sense ?
 
     # #TODO: add task on this
     # async def watcher(self): # watch key with ttl, to remove them automatically
