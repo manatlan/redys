@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 import multiprocessing,threading,time
 from concurrent.futures import ThreadPoolExecutor
 
-class Usot:
+class ServOne:
     """ Unique Source Of Truth
         Helper to create server and client for a RPC
     """

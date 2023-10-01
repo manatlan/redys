@@ -10,7 +10,7 @@ import asyncio,sys
 import logging,pickle
 from typing import Callable
 
-from .usot import Usot
+from .servone import ServOne
 
 class Redys2:
     def __init__(self):
@@ -171,7 +171,7 @@ class Redys2:
                     return self.events[event][self.id].pop(0)
         return None
 
-REDYS2=Usot(Redys2,port=13475)
+REDYS2=ServOne(Redys2,port=13475)
 
 def Server():
     """ run server in current loop """
