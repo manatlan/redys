@@ -189,4 +189,19 @@ def AClient():
 def Client():
     return REDYS2.clientsync
 
+async def loop(coro):
+    """ run a redys server, and wait for the loop 'coro'
+        ensure only one process server/redys+loop
+    """
+    REDYS2.start()
+    try:
+        while not REDYS2._task.done():
+            await asyncio.sleep(0.1)
 
+        if REDYS2._task.exception() is None:
+            print("<> Run redys loop")
+            await coro
+        else:
+            print("<> Redys loop is already running ! abort !")
+    finally:
+        REDYS2.stop()
