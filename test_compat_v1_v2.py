@@ -128,3 +128,10 @@ def test_events2( server2 ):
     pid2.terminate()
 
 
+if __name__=="__main__":
+    s=redys.v2.ServerProcess()
+    time.sleep(1)
+    print("yo")
+    s.stop()    
+
+
