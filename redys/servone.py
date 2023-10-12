@@ -113,7 +113,7 @@ class ServOne:
         self._running=False # stop the loop in process/thread
         if self._p:
             if isinstance(self._p, multiprocessing.Process):
-                self._p.terminate() # process mode
+                self._p.kill() # process mode
 
 
     @property
