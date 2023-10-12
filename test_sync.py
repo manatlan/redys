@@ -5,11 +5,12 @@ import subprocess
 
 @pytest.fixture()
 def server():
-    subprocess.Popen(["python3","-c","import asyncio,redys; asyncio.run(redys.Server())"])
+    p=subprocess.Popen(["python3","-c","import asyncio,redys; asyncio.run(redys.Server())"])
     time.sleep(0.5)
     yield "resource"
     try:
-        redys.Client().KILL()
+        os.kill(signal.SIGKILL,p.pid)
+        #TODO: do it on windows too
     except:
         pass
 

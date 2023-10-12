@@ -38,6 +38,7 @@ class ServOne:
             async def serve(reader, writer):
 
                 question = await reader.read()
+                name=question[:10]
 
                 #~ logger.debug("Received from %s, size: %s",writer.get_extra_info('peername'),len(question))
 
