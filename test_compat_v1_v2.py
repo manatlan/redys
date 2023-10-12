@@ -71,7 +71,6 @@ def assert_sync( bus ):
     assert bus.get("v")==["2"]
     assert bus.delete("v")==True
 
-@pytest.mark.asyncio
 def test_async1( server1 ):
     assert_sync( redys.Client() )
 
